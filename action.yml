@@ -20,6 +20,9 @@ inputs:
   useSameComment:
     description: 'While commenting on the PR update the exisiting comment'
     default: false
+  comment:
+    description: 'Custom comment text to be added at the top of the report'
+    required: false
 branding:
   color: red
   icon: git-pull-request

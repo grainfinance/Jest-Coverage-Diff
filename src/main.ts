@@ -397,7 +397,8 @@ function compareProjects(
 function formatMonorepoCoverageComment(
   projectDiffs: ProjectDiff[],
   commitSha: string,
-  baseSha: string | undefined
+  baseSha: string | undefined,
+  customComment?: string
 ): string {
   if (projectDiffs.length === 0) {
     return '<!-- coverage-comparison -->\n## 📊 Coverage Report\n\nNo changes to code coverage.'
@@ -406,6 +407,12 @@ function formatMonorepoCoverageComment(
   const totals = calculateWeightedTotals(projectDiffs)
 
   let comment = '<!-- coverage-comparison -->\n'
+
+  // Add custom comment at the top if provided
+  if (customComment) {
+    comment += `${customComment}\n\n`
+  }
+
   comment += '## 📊 Coverage Report\n\n'
   comment += '### Summary\n\n'
   comment += '| Metric | Before | After | Change |\n'
@@ -535,6 +542,7 @@ async function run(): Promise<void> {
     const githubClient = github.getOctokit(githubToken)
     const prNumber = github.context.issue.number
     const useSameComment = JSON.parse(core.getInput('useSameComment'))
+    const customComment = core.getInput('comment') || undefined
     const commentIdentifier = `<!-- coverage-comparison -->`
     let totalDelta = null
     if (rawTotalDelta !== null) {
@@ -555,7 +563,8 @@ async function run(): Promise<void> {
     const messageToPost = formatMonorepoCoverageComment(
       projectDiffs,
       commitSha,
-      baseSha
+      baseSha,
+      customComment
     )
 
     if (useSameComment) {
