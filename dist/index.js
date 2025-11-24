@@ -9822,12 +9822,12 @@ function formatCoverageComment(comparisons, commitSha, baseSha, customComment) {
     return comment;
 }
 function run() {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const repoName = github.context.repo.repo;
             const repoOwner = github.context.repo.owner;
-            const commitSha = github.context.sha;
+            const commitSha = ((_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head.sha) || github.context.sha;
             const githubToken = core.getInput('accessToken');
             const delta = Number(core.getInput('delta'));
             const rawTotalDelta = core.getInput('total_delta');
@@ -9846,7 +9846,7 @@ function run() {
             // Compare all coverage files using DiffChecker
             const comparisons = compareAllCoverageFiles(newCoveragePath, oldCoveragePath);
             core.info(`Found ${comparisons.length} projects with coverage data`);
-            const baseSha = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.base.sha;
+            const baseSha = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.base.sha;
             // Generate the comment
             const messageToPost = formatCoverageComment(comparisons, commitSha, baseSha, customComment);
             // Post or update the comment

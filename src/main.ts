@@ -433,7 +433,8 @@ async function run(): Promise<void> {
   try {
     const repoName = github.context.repo.repo
     const repoOwner = github.context.repo.owner
-    const commitSha = github.context.sha
+    const commitSha =
+      github.context.payload.pull_request?.head.sha || github.context.sha
     const githubToken = core.getInput('accessToken')
     const delta = Number(core.getInput('delta'))
     const rawTotalDelta = core.getInput('total_delta')

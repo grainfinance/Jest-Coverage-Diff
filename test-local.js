@@ -21,6 +21,9 @@ const mockContext = {
   },
   payload: {
     pull_request: {
+      head: {
+        sha: 'abc123def456'
+      },
       base: {
         sha: 'base-sha-123'
       }
