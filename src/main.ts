@@ -7,6 +7,7 @@ import {DiffChecker} from './DiffChecker'
 import {Octokit} from '@octokit/core'
 import {PaginateInterface} from '@octokit/plugin-paginate-rest'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
+import Big from 'big.js'
 
 interface ProjectComparison {
   projectPath: string
@@ -236,30 +237,66 @@ function calculateWeightedCoverageChange(
     }
 
     // Aggregate baseline (old) coverage
-    baselineStatements.total += oldTotal.statements.total
-    baselineStatements.covered += oldTotal.statements.covered
-    baselineBranches.total += oldTotal.branches.total
-    baselineBranches.covered += oldTotal.branches.covered
-    baselineFunctions.total += oldTotal.functions.total
-    baselineFunctions.covered += oldTotal.functions.covered
-    baselineLines.total += oldTotal.lines.total
-    baselineLines.covered += oldTotal.lines.covered
+    baselineStatements.total = new Big(baselineStatements.total)
+      .plus(oldTotal.statements.total)
+      .toNumber()
+    baselineStatements.covered = new Big(baselineStatements.covered)
+      .plus(oldTotal.statements.covered)
+      .toNumber()
+    baselineBranches.total = new Big(baselineBranches.total)
+      .plus(oldTotal.branches.total)
+      .toNumber()
+    baselineBranches.covered = new Big(baselineBranches.covered)
+      .plus(oldTotal.branches.covered)
+      .toNumber()
+    baselineFunctions.total = new Big(baselineFunctions.total)
+      .plus(oldTotal.functions.total)
+      .toNumber()
+    baselineFunctions.covered = new Big(baselineFunctions.covered)
+      .plus(oldTotal.functions.covered)
+      .toNumber()
+    baselineLines.total = new Big(baselineLines.total)
+      .plus(oldTotal.lines.total)
+      .toNumber()
+    baselineLines.covered = new Big(baselineLines.covered)
+      .plus(oldTotal.lines.covered)
+      .toNumber()
 
     // Aggregate current (new) coverage
-    currentStatements.total += newTotal.statements.total
-    currentStatements.covered += newTotal.statements.covered
-    currentBranches.total += newTotal.branches.total
-    currentBranches.covered += newTotal.branches.covered
-    currentFunctions.total += newTotal.functions.total
-    currentFunctions.covered += newTotal.functions.covered
-    currentLines.total += newTotal.lines.total
-    currentLines.covered += newTotal.lines.covered
+    currentStatements.total = new Big(currentStatements.total)
+      .plus(newTotal.statements.total)
+      .toNumber()
+    currentStatements.covered = new Big(currentStatements.covered)
+      .plus(newTotal.statements.covered)
+      .toNumber()
+    currentBranches.total = new Big(currentBranches.total)
+      .plus(newTotal.branches.total)
+      .toNumber()
+    currentBranches.covered = new Big(currentBranches.covered)
+      .plus(newTotal.branches.covered)
+      .toNumber()
+    currentFunctions.total = new Big(currentFunctions.total)
+      .plus(newTotal.functions.total)
+      .toNumber()
+    currentFunctions.covered = new Big(currentFunctions.covered)
+      .plus(newTotal.functions.covered)
+      .toNumber()
+    currentLines.total = new Big(currentLines.total)
+      .plus(newTotal.lines.total)
+      .toNumber()
+    currentLines.covered = new Big(currentLines.covered)
+      .plus(newTotal.lines.covered)
+      .toNumber()
   }
 
   // Calculate percentages and diffs
   const calcPct = (covered: number, total: number): number => {
     if (total === 0) return 0
-    return Math.round((covered / total) * 10000) / 100
+    const result = new Big(covered)
+      .div(total)
+      .times(100)
+      .round(2, Big.roundHalfUp)
+    return result.toNumber()
   }
 
   const baselineStatementsPct = calcPct(
@@ -292,8 +329,9 @@ function calculateWeightedCoverageChange(
   const baselineLinesPct = calcPct(baselineLines.covered, baselineLines.total)
   const currentLinesPct = calcPct(currentLines.covered, currentLines.total)
 
-  const roundDiff = (diff: number): number =>
-    Math.round((diff + Number.EPSILON) * 100) / 100
+  const roundDiff = (diff: number): number => {
+    return new Big(diff).round(2, Big.roundHalfUp).toNumber()
+  }
 
   return {
     statements: {
@@ -365,11 +403,11 @@ function formatCoverageComment(
         '|--------|--------|--------------|------------|-------------|----------|\n'
 
       // Determine overall status icon
-      const overallDiff =
-        weightedCoverage.statements.diff +
-        weightedCoverage.branches.diff +
-        weightedCoverage.functions.diff +
-        weightedCoverage.lines.diff
+      const overallDiff = new Big(weightedCoverage.statements.diff)
+        .plus(weightedCoverage.branches.diff)
+        .plus(weightedCoverage.functions.diff)
+        .plus(weightedCoverage.lines.diff)
+        .toNumber()
       const statusIcon = overallDiff < 0 ? ':red_circle:' : ':green_circle:'
 
       const formatDiff = (diff: number): string => {

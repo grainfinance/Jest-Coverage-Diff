@@ -21,6 +21,9 @@ const mockContext = {
   },
   payload: {
     pull_request: {
+      head: {
+        sha: 'abc123def456'
+      },
       base: {
         sha: 'base-sha-123'
       }
@@ -30,17 +33,17 @@ const mockContext = {
 
 // Mock @actions/core
 const mockCore = {
-  getInput: (name) => {
+  getInput: name => {
     const inputName = `INPUT_${name.toUpperCase()}`
     return process.env[inputName] || ''
   },
-  info: (message) => {
+  info: message => {
     console.log('[INFO]', message)
   },
-  warning: (message) => {
+  warning: message => {
     console.warn('[WARNING]', message)
   },
-  setFailed: (message) => {
+  setFailed: message => {
     console.error('[FAILED]', message)
     process.exitCode = 1
   }
@@ -49,24 +52,30 @@ const mockCore = {
 // Mock @actions/github
 const mockGithub = {
   context: mockContext,
-  getOctokit: (token) => {
+  getOctokit: token => {
     console.log('[MOCK] GitHub client created with token:', token)
     return {
       issues: {
-        updateComment: async (params) => {
-          console.log('[MOCK] Would update comment:', JSON.stringify(params, null, 2))
-          return { data: {} }
+        updateComment: async params => {
+          console.log(
+            '[MOCK] Would update comment:',
+            JSON.stringify(params, null, 2)
+          )
+          return {data: {}}
         },
-        createComment: async (params) => {
+        createComment: async params => {
           console.log('[MOCK] Would create comment:')
           console.log('='.repeat(80))
           console.log(params.body)
           console.log('='.repeat(80))
-          return { data: {} }
+          return {data: {}}
         },
-        listComments: async (params) => {
-          console.log('[MOCK] Would list comments:', JSON.stringify(params, null, 2))
-          return { data: [] } // Return empty array so it creates a new comment
+        listComments: async params => {
+          console.log(
+            '[MOCK] Would list comments:',
+            JSON.stringify(params, null, 2)
+          )
+          return {data: []} // Return empty array so it creates a new comment
         }
       }
     }
@@ -85,4 +94,3 @@ require('module').Module._cache[require.resolve('@actions/github')] = {
 // Now require and run the main module
 console.log('Starting local test...\n')
 require('./lib/main.js')
-

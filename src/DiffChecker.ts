@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import Big from 'big.js'
 import {CoverageReport} from './Model/CoverageReport'
 import {DiffCoverageReport} from './Model/DiffCoverageReport'
 import {CoverageData} from './Model/CoverageData'
@@ -178,9 +179,11 @@ export class DiffChecker {
   }
 
   private getPercentageDiff(diffData: DiffCoverageData): number {
-    // get diff
-    const diff = Number(diffData.newPct) - Number(diffData.oldPct)
+    // get diff using big.js for precise decimal arithmetic
+    const newPct = new Big(diffData.newPct || 0)
+    const oldPct = new Big(diffData.oldPct || 0)
+    const diff = newPct.minus(oldPct)
     // round off the diff to 2 decimal places
-    return Math.round((diff + Number.EPSILON) * 100) / 100
+    return diff.round(2).toNumber()
   }
 }
